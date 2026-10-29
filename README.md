@@ -38,6 +38,9 @@ En macOS / Linux:
 
 source venv/bin/activate
 
+si trae errores al activar el entorno se ocupara el siguiente comando: 
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+
 
 2. Instalación de Dependencias
 

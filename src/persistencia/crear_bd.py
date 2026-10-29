@@ -124,6 +124,7 @@ def crear_tablas():
             id INT PRIMARY KEY AUTO_INCREMENT,
             nombre_usuario VARCHAR(40) NOT NULL UNIQUE,
             password_hash VARCHAR(255) NOT NULL,
+            rol varchar(10) NOT NULL DEFAULT 'empleado' CHECK (rol IN ('admin', 'empleado')),
             empleado_id INT NOT NULL UNIQUE,
             FOREIGN KEY (empleado_id) REFERENCES empleado(id) ON DELETE CASCADE
         );

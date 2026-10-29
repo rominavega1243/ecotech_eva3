@@ -36,3 +36,10 @@ class Usuario:
         )
         return clave 
 
+    ROLES = ("admin", "empleado" )
+
+    @classmethod
+    def validar_rol(cls, rol):
+        if not isinstance(rol, str) or  rol not in cls.ROLES:
+            raise ValueError("Rol no permitido.")
+        return rol

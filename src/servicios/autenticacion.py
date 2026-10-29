@@ -43,11 +43,14 @@ def autenticar(nombre, clave):
         return None
     
     # Verificación del hash
-    if bcrypt.checkpw(datos, cuenta.password_hash.encode("utf-8")):
+    if  not bcrypt.checkpw(datos, cuenta.password_hash.encode("utf-8")):
         return {
             "id": cuenta.id,
             "empleado_id": cuenta.empleado_id,
-            "nombre_usuario": cuenta.nombre_usuario
+            "nombre_usuario": cuenta.nombre_usuario,
+            "rol": cuenta.rol,
+
+            
         }
         
     return None

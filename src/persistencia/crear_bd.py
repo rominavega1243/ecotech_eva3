@@ -115,6 +115,7 @@ def crear_tablas():
             nombre_usuario TEXT NOT NULL UNIQUE,
             password_hash TEXT NOT NULL,
             empleado_id INTEGER NOT NULL UNIQUE,
+            rol TEXT NOT NULL DEFAULT 'empleado' CHECK (rol IN ('admin', 'empleado')),
             FOREIGN KEY (empleado_id) REFERENCES empleado(id) ON DELETE CASCADE
         );
         '''

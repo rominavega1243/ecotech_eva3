@@ -16,7 +16,7 @@ emp = Empleado(nombre="admin", correo="admin@admin.com", telefono="", fecha_inic
 # Intentamos crear el usuario admin, si ya existe ignoramos el error
 try:
     EmpleadoDAO.insertar(emp)
-    user = registrar_usuario(emp.id, "admin", "admin123")
+    user = registrar_usuario(emp.id, "admin", "admin123", rol="admin")
     print(emp.mostrar_datos())
     print(f"Usuario admin creado con ID: {user}")
 except Exception:

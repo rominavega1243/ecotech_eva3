@@ -9,12 +9,12 @@ class UsuarioDAO:
         cursor = conexion.cursor()
         marcador = marcador_sql()
         sql = f"""
-            INSERT INTO usuario (nombre_usuario, password_hash, empleado_id)
-            VALUES ({marcador}, {marcador}, {marcador})
+            INSERT INTO usuario (nombre_usuario, password_hash, empleado_id, rol)
+            VALUES ({marcador}, {marcador}, {marcador}, {marcador})
         """
         cursor.execute(
             sql, 
-            (usuario.nombre_usuario, usuario.password_hash, usuario.empleado_id)
+            (usuario.nombre_usuario, usuario.password_hash, usuario.empleado_id, usuario.rol)
         )
         usuario.id = cursor.lastrowid
         conexion.commit()
@@ -27,7 +27,7 @@ class UsuarioDAO:
         cursor = conexion.cursor()
         marca = marcador_sql()
         sql = f"""
-            SELECT id, nombre_usuario, password_hash, empleado_id
+            SELECT id, nombre_usuario, password_hash, empleado_id, rol
             FROM usuario WHERE id = {marca}
         """
         cursor.execute(sql, (id_usuario,))
@@ -39,7 +39,8 @@ class UsuarioDAO:
             id=fila[0], 
             nombre_usuario=fila[1], 
             password_hash=fila[2], 
-            empleado_id=fila[3]
+            empleado_id=fila[3],
+            rol=fila[4]
         )
 
     @staticmethod
@@ -48,7 +49,7 @@ class UsuarioDAO:
         cursor = conexion.cursor()
         marca = marcador_sql()
         sql = f"""
-            SELECT id, nombre_usuario, password_hash, empleado_id
+            SELECT id, nombre_usuario, password_hash, empleado_id, rol
             FROM usuario WHERE nombre_usuario = {marca}
         """
         cursor.execute(sql, (nombre_usuario.strip().lower(),))
@@ -60,7 +61,8 @@ class UsuarioDAO:
             id=fila[0], 
             nombre_usuario=fila[1], 
             password_hash=fila[2], 
-            empleado_id=fila[3]
+            empleado_id=fila[3],
+            rol=fila[4]
         )
 
     @staticmethod
@@ -69,7 +71,7 @@ class UsuarioDAO:
         cursor = conexion.cursor()
         marca = marcador_sql()
         sql = f"""
-            SELECT id, nombre_usuario, password_hash, empleado_id
+            SELECT id, nombre_usuario, password_hash, empleado_id, rol
             FROM usuario WHERE empleado_id = {marca}
         """
         cursor.execute(sql, (empleado_id,))
@@ -81,7 +83,8 @@ class UsuarioDAO:
             id=fila[0], 
             nombre_usuario=fila[1], 
             password_hash=fila[2], 
-            empleado_id=fila[3]
+            empleado_id=fila[3],
+            rol=fila[4]
         )
 
     @staticmethod
@@ -89,7 +92,7 @@ class UsuarioDAO:
         conexion = abrir_conexion()
         cursor = conexion.cursor()
         cursor.execute(
-            "SELECT id, nombre_usuario, password_hash, empleado_id FROM usuario"
+            "SELECT id, nombre_usuario, password_hash, empleado_id, rol FROM usuario"
         )
         filas = cursor.fetchall()
         conexion.close()
@@ -100,7 +103,8 @@ class UsuarioDAO:
                     id=fila[0], 
                     nombre_usuario=fila[1], 
                     password_hash=fila[2], 
-                    empleado_id=fila[3]
+                    empleado_id=fila[3],
+                    rol=fila[4]
                 )
             )
         return usuarios
@@ -114,12 +118,12 @@ class UsuarioDAO:
             marca = marcador_sql()
             sql = (
                 "UPDATE usuario "
-                f"SET nombre_usuario = {marca}, password_hash = {marca}, empleado_id = {marca} "
+                f"SET nombre_usuario = {marca}, password_hash = {marca}, empleado_id = {marca}, rol = {marca} "
                 f"WHERE id = {marca}"
             )
             cursor.execute(
                 sql,
-                (usuario.nombre_usuario, usuario.password_hash, usuario.empleado_id, usuario.id)
+                (usuario.nombre_usuario, usuario.password_hash, usuario.empleado_id, usuario.rol, usuario.id)
             )
             conexion.commit()
             return cursor.rowcount > 0

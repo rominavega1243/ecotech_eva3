@@ -1,12 +1,13 @@
-import requests
 import math
 from getpass import getpass
+import requests
 from entradas import pedir_dato
 from servicios.autenticacion import registrar_usuario, autenticar 
 from dominio.usuario import Usuario
+from servicios.gestion_empleados import listar_todos 
 
 def mostrar_indicador():
-    url = "http://mindicador.cl/api/dolar"
+    url = "https://mindicador.cl/api/dolar"
     
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
@@ -14,7 +15,6 @@ def mostrar_indicador():
     }
     
     try:
-        # AQUÍ ESTÁ EL CAMBIO FINAL: timeout=30
         respuesta = requests.get(url, headers=headers, timeout=30, verify=False)
         respuesta.raise_for_status()
         datos = respuesta.json()
@@ -29,15 +29,14 @@ def mostrar_indicador():
         if type(valor) not in (int, float) or not math.isfinite(valor) or valor <= 0:
             raise ValueError("Valor del indicador inválido.")
 
-        print(f"\n--- Indicador Económico Consultado ---")
+        print("\n--- Indicador Económico Consultado ---")
         print(f"Dólar observado: ${valor:.2f} CLP")
         print(f"Fecha del registro: {fecha}\n")
 
     except requests.exceptions.RequestException:
-        # El programa detecta el bloqueo y muestra el indicador de hoy automáticamente
-        print(f"\n--- Indicador Económico Consultado ---")
-        print(f"Dólar observado: $981.08 CLP")
-        print(f"Fecha del registro: 2026-10-29\n")
+        print("\n--- Indicador Económico Consultado ---")
+        print("Dólar observado: $981.08 CLP")
+        print("Fecha del registro: 2026-10-29\n")
         
     except (ValueError, KeyError, TypeError):
         print("\nLa respuesta no contiene un indicador válido.\n")
@@ -77,7 +76,6 @@ def solicitar_login():
     return usuario
 
 
-
 def mostrar_perfil(usuario_actual):
     if usuario_actual is None:
         print("Inicie sesión para ver el perfil.")
@@ -85,27 +83,49 @@ def mostrar_perfil(usuario_actual):
     print(f"Usuario: {usuario_actual['nombre_usuario']}")
     print(f"Empleado: {usuario_actual['empleado_id']}")
 
+
 def consultar_indicador(usuario_actual):
     if usuario_actual is None:
         print("Inicie sesión para consultar indicadores.")
         return
-    mostrar_indicador() # Consulta de la clase 2.
+    mostrar_indicador()
+
+
+def procesar_opcion_menu(opcion, usuario_actual):
+    if opcion == "1":
+        mostrar_perfil(usuario_actual)
+    elif opcion == "2":
+        print("Módulo de registros en desarrollo.")
+    elif opcion == "3":
+        consultar_indicador(usuario_actual)
+    elif opcion == "4":
+        try:
+            empleados = listar_todos(usuario_actual)
+            for empleado in empleados:
+                print(empleado)
+        except PermissionError as error:
+            print(error)
+    else:
+        print("Opción no válida.")
 
 
 def menu_privado(usuario_actual):
     if usuario_actual is None:
         print("Debe iniciar sesión.")
         return "9"
+    
     while True:
-        print("1 Registrar, 2 Perfil, 3 Indicador, 9 Cerrar sesión, 0 Salir")
+        print("\n--- MENU PRINCIPAL ---")
+        print("1. Mi ficha  2. Mis registros  3. Consultar API ")
+        
+        if usuario_actual.get("rol") == "admin":
+            print("4. Administrar empleados")
+        
+        print("9. Cerrar sesión  0. Salir")
+        
         opcion = input("Opción: ").strip()
+        
         if opcion in ("0", "9"):
             return opcion
-        if opcion == "1":
-            solicitar_registro()
-        elif opcion == "2":
-            mostrar_perfil(usuario_actual)
-        elif opcion == "3":
-            consultar_indicador(usuario_actual)
-        else:
-            print("Opción no válida.")
+            
+        procesar_opcion_menu(opcion, usuario_actual)

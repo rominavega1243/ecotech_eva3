@@ -11,7 +11,7 @@ from dominio.usuario import Usuario
 from servicios.autenticacion import crear_hash
 from persistencia.crear_bd import abrir_conexion
 
-# Constantes para evitar duplicación de texto en SonarQube
+# Constantes para evitar duplicación de texto 
 CORREO_ANA = "ana@ecotech.example"
 CORREO_LUIS = "luis@ecotech.example"
 
@@ -111,6 +111,7 @@ def _cargar_registros_tiempo(proyectos_db):
         print(" Registros de tiempo cargados correctamente.")
     else:
         print(" Los registros de tiempo ya existían. Se omitió la inserción.")
+        
 def _cargar_usuarios():
     # 1. Admin (Empleado ID 1)
     emp_admin = EmpleadoDAO.buscar_por_correo("admin@admin.com")

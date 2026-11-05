@@ -62,7 +62,7 @@ class RegistroTiempoDAO:
 
         registros = []
         for f in filas:
-            reg = RegistroTiempo(f[1], f[2], f[3], f[4], f[5], f[6])
+            reg = RegistroTiempo(f[2], f[3], f[4], f[5], f[6], f[1])
             reg.id = f[0]
             registros.append(reg)
         return registros

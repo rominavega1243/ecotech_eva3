@@ -12,24 +12,29 @@ Bases de Datos: SQLite / MySQL
 
 Control de Versiones: Git y GitHub
 
-Librerías externas: requests (para API externa), bcrypt (cifrado de contraseñas), python-dotenv.
+Librerías externas:
+
+requests (para API externa), bcrypt (cifrado de contraseñas), python-dotenv.
 
 Guía Técnica de Inicialización (Git Bash)
 
 A continuación, se detallan los pasos exactos para configurar el entorno local, instalar las dependencias y ejecutar correctamente el sistema utilizando la terminal Git Bash.
 
 1. Creación y Activación del Entorno Virtual
+
 Crear el entorno virtual (usando .venv):
 
 python -m venv .venv
 
 Activar el entorno virtual:
+
 source .venv/Scripts/activate
 
 
 (Deberás ver (.venv) al inicio de la línea en tu terminal, indicando que está activo).
 
 Abrir el proyecto en el editor de código:
+
 code .
 
 2. Instalación de Dependencias
@@ -42,14 +47,17 @@ pip install -r requirements.txt
 El código fuente principal se encuentra dentro de la carpeta src. Debes navegar a ese directorio antes de iniciar la carga de datos o la aplicación.
 
 Ingresar a la carpeta fuente:
+
 cd src
 
 
 Cargar base de datos inicial (incluye creación de usuario administrador):
+
 python semilla_bd.py
 
 
 Iniciar la aplicación principal:
+
 python main.py
 
 
@@ -63,4 +71,5 @@ Estando dentro de la carpeta src, borra el archivo físico de la base de datos l
 Vuelve a cargar las semillas y ejecutar el archivo principal para que el sistema regenere la base de datos limpia desde cero:
 
 python semilla_bd.py
+
 python main.py

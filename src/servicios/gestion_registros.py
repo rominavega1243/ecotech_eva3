@@ -16,11 +16,11 @@ def obtener_mis_registros(sesion):
         # 3. Si no existe, extraer de la propiedad 'empleado' (que tiene el valor 2 que imprime Mi ficha)
         if empleado_id is None and hasattr(sesion, "empleado"):
             emp_val = getattr(sesion, "empleado")
-            # Si 'empleado' es un objeto con id (emp_val.id) o si ya es el entero (2)
+            # Si 'empleado' es un objeto con id (emp_val.id) o si ya es el entero 
             empleado_id = getattr(emp_val, "id", emp_val)
 
     if empleado_id is None:
         return []
 
-    # 4. Consultar al DAO forzando la conversión a número entero (2)
+    # 4. Consultar al DAO forzando la conversión a número entero 
     return RegistroTiempoDAO.buscar_por_empleado_id(int(empleado_id))

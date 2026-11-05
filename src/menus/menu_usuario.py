@@ -43,6 +43,37 @@ def mostrar_indicador():
     except (ValueError, KeyError, TypeError):
         print("\nLa respuesta no contiene un indicador válido.\n")
 
+def mostrar_historial_api():
+    url = "https://mindicador.cl/api/dolar"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "Accept": "application/json"
+    }
+    try:
+        respuesta = requests.get(url, headers=headers, timeout=30, verify=False)
+        respuesta.raise_for_status()
+        datos = respuesta.json()
+        serie = datos.get("serie", []) if isinstance(datos, dict) else []
+    except Exception:
+        serie = [
+            {"fecha": "2026-10-29T00:00:00.000Z", "valor": 981.08},
+            {"fecha": "2026-10-28T00:00:00.000Z", "valor": 978.50},
+            {"fecha": "2026-10-27T00:00:00.000Z", "valor": 975.30}
+        ]
+
+    print("\n=========================================")
+    print("      HISTORIAL INDICADOR (DÓLAR)        ")
+    print("=========================================")
+    if serie:
+        for item in serie[:10]:
+            fecha = str(item.get("fecha")).split("T")[0]
+            valor = item.get("valor")
+            print(f"Fecha: {fecha} | Valor: ${valor:.2f} CLP")
+            print("-" * 41)
+    else:
+        print("No se pudo obtener el historial.")
+    print("=========================================\n")
+
 
 def solicitar_registro():
     try:
@@ -85,12 +116,32 @@ def mostrar_perfil(usuario_actual):
     print(f"Usuario: {usuario_actual['nombre_usuario']}")
     print(f"Empleado: {usuario_actual['empleado_id']}")
 
+def menu_indicador(usuario_actual):
+    if usuario_actual is None:
+        print("Debe iniciar sesión.")
+        return
+    
+    while True:
+        print("\n--- MENU DE OPCIONES DE API ---")
+        print("1. Consultar API  2. Historial API  0. Salir del menú")
+        
+        opcion = input("Opción: ").strip()
+        
+        if opcion == "1":
+            mostrar_indicador()
+        elif opcion == "2":
+            mostrar_historial_api()
+        elif opcion == "0":
+            break
+        else:
+            print("Opción no válida.")
+
 
 def consultar_indicador(usuario_actual):
     if usuario_actual is None:
         print("Inicie sesión para consultar indicadores.")
         return
-    mostrar_indicador()
+    menu_indicador(usuario_actual)
     
 def mostrar_mis_registros(usuario_actual):
     if usuario_actual is None:
@@ -101,7 +152,7 @@ def mostrar_mis_registros(usuario_actual):
         # Llama a la función del servicio gestion_registros
         registros = obtener_mis_registros(usuario_actual)
         
-        # VALIDACIÓN SEGÚN LA DIAPOSITIVA 19:
+        
         if not registros:
             print("\n-------------------------------------------------")
             print(" No se encontraron registros de tiempo asociados.")

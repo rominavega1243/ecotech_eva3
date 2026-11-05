@@ -23,6 +23,9 @@ except Exception:
     # Si el correo o el usuario ya existen, el programa entra aquí y continúa normalmente
     pass
 
+
+
+
 def mostrar_menu_sistema():
     while True:
         print("\n=== SISTEMA ===")

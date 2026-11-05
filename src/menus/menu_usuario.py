@@ -5,6 +5,8 @@ from entradas import pedir_dato
 from servicios.autenticacion import registrar_usuario, autenticar 
 from dominio.usuario import Usuario
 from servicios.gestion_empleados import listar_todos 
+from servicios.gestion_registros import obtener_mis_registros 
+from persistencia.registro_tiempo_dao import RegistroTiempoDAO 
 
 def mostrar_indicador():
     url = "https://mindicador.cl/api/dolar"
@@ -89,13 +91,45 @@ def consultar_indicador(usuario_actual):
         print("Inicie sesión para consultar indicadores.")
         return
     mostrar_indicador()
+    
+def mostrar_mis_registros(usuario_actual):
+    if usuario_actual is None:
+        print("\n[!] Debe iniciar sesión para consultar sus registros.\n")
+        return
 
+    try:
+        # Llama a la función del servicio gestion_registros
+        registros = obtener_mis_registros(usuario_actual)
+        
+        # VALIDACIÓN SEGÚN LA DIAPOSITIVA 19:
+        if not registros:
+            print("\n-------------------------------------------------")
+            print(" No se encontraron registros de tiempo asociados.")
+            print("-------------------------------------------------\n")
+            return
 
+        # Si existen registros, se muestran en consola
+        print("\n=========================================")
+        print("         MIS REGISTROS DE TIEMPO          ")
+        print("=========================================")
+        for reg in registros:
+            reg_id = getattr(reg, "id", 1)
+            horas = getattr(reg, "cantidad_horas", getattr(reg, "horas", 0))
+            tareas = getattr(reg, "tareas_realizadas", getattr(reg, "tareas", ""))
+            
+            print(f"ID: {reg_id} | Fecha: {reg.fecha} | Horas: {horas} hrs")
+            print(f"   Tareas: {tareas}")
+            print("-" * 41)
+        print("=========================================\n")
+
+    except Exception as error:
+        print(f"\n[!] Error al obtener los registros: {error}\n")
+        
 def procesar_opcion_menu(opcion, usuario_actual):
     if opcion == "1":
         mostrar_perfil(usuario_actual)
     elif opcion == "2":
-        print("Módulo de registros en desarrollo.")
+        mostrar_mis_registros(usuario_actual)
     elif opcion == "3":
         consultar_indicador(usuario_actual)
     elif opcion == "4":

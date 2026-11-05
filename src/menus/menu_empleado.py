@@ -41,7 +41,7 @@ def registrar_empleado():
 
     while True:
         correo = input("Correo: ").strip()
-        if re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", correo) and len(correo) <=("@ecotech.com"):
+        if re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", correo) and correo.endswith("@ecotech.com"):
             break
         print("Error: Formato inválido. Ejemplo: usuario@ecotech.com")
 

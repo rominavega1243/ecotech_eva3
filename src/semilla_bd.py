@@ -11,11 +11,12 @@ from dominio.usuario import Usuario
 from servicios.autenticacion import crear_hash
 from persistencia.crear_bd import abrir_conexion
 
-def cargar_semillas():
-    conexion = abrir_conexion()
-    print("Iniciando carga de semillas...")
+# Constantes para evitar duplicación de texto en SonarQube
+CORREO_ANA = "ana@ecotech.example"
+CORREO_LUIS = "luis@ecotech.example"
 
-    # 1. Departamentos
+
+def _cargar_departamentos():
     datos_deptos = [
         ("Tecnología", "Carlos Mendoza"),
         ("Recursos Humanos", "Laura Gómez"),
@@ -32,11 +33,13 @@ def cargar_semillas():
             depto = DepartamentoDAO.buscar_por_nombre(nombre)
         departamentos_db.append(depto)
     print(" Departamentos cargados.")
+    return departamentos_db
 
-    # 2. Empleados
+
+def _cargar_empleados():
     datos_empleados = [
-        ("Ana Torres", "ana@ecotech.example", "555-0101", "2023-01-15", 3500),
-        ("Luis Vargas", "luis@ecotech.example", "555-0102", "2023-02-01", 3200),
+        ("Ana Torres", CORREO_ANA, "555-0101", "2023-01-15", 3500),
+        ("Luis Vargas", CORREO_LUIS, "555-0102", "2023-02-01", 3200),
         ("María Rojas", "maria@ecotech.example", "555-0103", "2022-11-20", 3800),
         ("Pedro Soto", "pedro@ecotech.example", "555-0104", "2023-03-10", 3100),
         ("Elena Díaz", "elena@ecotech.example", "555-0105", "2021-08-05", 4200),
@@ -65,8 +68,10 @@ def cargar_semillas():
             empleado = EmpleadoDAO.buscar_por_correo(correo)
         empleados_db.append(empleado)
     print(" Empleados cargados correctamente.")
+    return empleados_db
 
-    # 3. Proyectos
+
+def _cargar_proyectos():
     datos_proyectos = [
         ("Migración a la Nube", "Migración de servidores locales a AWS", "2025-03-05"),
         ("Campaña publicitaria", "Lanzamiento del producto estrella", "2025-02-15"),
@@ -81,37 +86,72 @@ def cargar_semillas():
             proyecto = ProyectoDAO.buscar_por_nombre(nombre)
         proyectos_db.append(proyecto)
     print(" Proyectos cargados correctamente.")
+    return proyectos_db
 
-    # 4. Registros de tiempo
-    if empleados_db and proyectos_db:
-        try:
-            registros_existentes = RegistroTiempoDAO.obtener_todos()
-        except AttributeError:
-            registros_existentes = []
 
-        if not registros_existentes: 
-            registros = [
-                ("2024-04-01", 4.5, "Configuración de servidores", "Setup inicial", empleados_db[0].id, proyectos_db[0].id),
-                ("2024-04-02", 3.0, "Migración de base de datos", "Scripts de SQL", empleados_db[1].id, proyectos_db[0].id),
-                ("2024-04-03", 5.0, "Reunión de planificación", "Definición de KPIs", empleados_db[12].id, proyectos_db[1].id)
-            ]
-            for fecha, horas, tareas, desc, emp_id, proy_id in registros:
-                registro = RegistroTiempo(fecha, horas, tareas, emp_id, proy_id)
-                RegistroTiempoDAO.insertar(registro)
-            print(" Registros de tiempo cargados correctamente.")
-        else:
-            print(" Los registros de tiempo ya existían. Se omitió la inserción.")
+def _cargar_registros_tiempo(proyectos_db):
+    if not proyectos_db:
+        return
 
-    # 5. Usuario Administrador Inicial
-    if empleados_db:
-        usuario_admin = UsuarioDAO.buscar_por_nombre_usuario("admin")
-        if not usuario_admin:
-            hash_clave = crear_hash("admin123")
-            nuevo_usuario = Usuario("admin", hash_clave, empleado_id=empleados_db[0].id)
-            UsuarioDAO.insertar(nuevo_usuario)
-            print(" Usuario inicial (admin) cargado con clave cifrada.")
-        else:
-            print(" El usuario inicial ya existía.")
+    try:
+        registros_existentes = RegistroTiempoDAO.obtener_todos()
+    except Exception:
+        registros_existentes = []
+
+    if not registros_existentes:
+        # Ana Torres = ID 2 | Luis Vargas = ID 3
+        registros = [
+            ("2024-04-01", 4.5, "Configuración de servidores - Setup inicial", 2, proyectos_db[0].id),
+            ("2024-04-02", 3.0, "Migración de base de datos - Scripts de SQL", 3, proyectos_db[0].id),
+            ("2024-04-03", 5.0, "Reunión de planificación - Definición de KPIs", 3, proyectos_db[1].id)
+        ]
+        for fecha, horas, tareas, emp_id, proy_id in registros:
+            registro = RegistroTiempo(fecha, horas, tareas, emp_id, proy_id)
+            RegistroTiempoDAO.insertar(registro)
+        print(" Registros de tiempo cargados correctamente.")
+    else:
+        print(" Los registros de tiempo ya existían. Se omitió la inserción.")
+def _cargar_usuarios():
+    # 1. Admin (Empleado ID 1)
+    emp_admin = EmpleadoDAO.buscar_por_correo("admin@admin.com")
+    admin_id = emp_admin.id if emp_admin else 1
+
+    if not UsuarioDAO.buscar_por_nombre_usuario("admin"):
+        hash_clave = crear_hash("admin123")
+        nuevo_usuario = Usuario("admin", hash_clave, empleado_id=admin_id)
+        UsuarioDAO.insertar(nuevo_usuario)
+        print(" Usuario inicial (admin) cargado.")
+
+    # 2. Ana Torres (Empleado ID 2)
+    emp_ana = EmpleadoDAO.buscar_por_correo(CORREO_ANA)
+    ana_id = emp_ana.id if emp_ana else 2
+
+    if not UsuarioDAO.buscar_por_nombre_usuario("atorres"):
+        hash_clave = crear_hash("123456")
+        usuario_ana = Usuario("atorres", hash_clave, empleado_id=ana_id)
+        UsuarioDAO.insertar(usuario_ana)
+        print(" Usuario de prueba (atorres - Ana Torres) cargado.")
+
+    # 3. Luis Vargas (Empleado ID 3)
+    emp_luis = EmpleadoDAO.buscar_por_correo(CORREO_LUIS)
+    luis_id = emp_luis.id if emp_luis else 3
+
+    if not UsuarioDAO.buscar_por_nombre_usuario("lvargas"):
+        hash_clave = crear_hash("123456")
+        usuario_luis = Usuario("lvargas", hash_clave, empleado_id=luis_id)
+        UsuarioDAO.insertar(usuario_luis)
+        print(" Usuario de prueba (lvargas - Luis Vargas) cargado.")
+
+
+def cargar_semillas():
+    conexion = abrir_conexion()
+    print("Iniciando carga de semillas...")
+
+    _cargar_departamentos()
+    _cargar_empleados()
+    proyectos_db = _cargar_proyectos()
+    _cargar_registros_tiempo(proyectos_db)
+    _cargar_usuarios()
 
     print(" Base de datos poblada exitosamente.")
     conexion.commit()

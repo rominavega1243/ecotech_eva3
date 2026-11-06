@@ -50,7 +50,7 @@ Ingresar a la carpeta fuente:
 
 cd src
 
-Antes de iniciar la aplicacion inicial debes borrar ecotech db ya que para que no de error al iniciar el main.
+Antes de iniciar la aplicacion inicial debes borrar ecotech db ya que para que no de error al iniciar el main.py 
 
 Iniciar la aplicación principal:
 
@@ -64,8 +64,6 @@ Si al ejecutar python main.py ocurre un error relacionado con la base de datos (
 Detén la ejecución del programa (Ctrl + C).
 Estando dentro de la carpeta src, borra el archivo físico de la base de datos local (el archivo .db o .sqlite generado).
 
-Vuelve a cargar las semillas y ejecutar el archivo principal para que el sistema regenere la base de datos limpia desde cero:
-
-python semilla_bd.py
+Vuelve a cargar  y ejecuta el archivo principal para que el sistema regenere la base de datos limpia desde cero
 
 python main.py

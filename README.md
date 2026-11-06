@@ -57,7 +57,13 @@ Iniciar la aplicación principal:
 python main.py
 
 
-4. Solución de Errores Comunes (Base de Datos)
+4. Solución (Base de Datos)
+
+Si  al ingresar main.py  carga correctamente  entonces no es necesario borrar la base de datos ecotech db
+
+
+
+5. Solución de Errores Comunes (Base de Datos)
 
 Si al ejecutar python main.py ocurre un error relacionado con la base de datos (por ejemplo, sqlite3.OperationalError: database is locked, conflictos de esquema o registros duplicados), sigue estos pasos:
 

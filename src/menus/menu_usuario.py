@@ -123,7 +123,7 @@ def menu_indicador(usuario_actual):
     
     while True:
         print("\n--- MENU DE OPCIONES DE API ---")
-        print("1. Consultar API  2. Historial API  0. Salir del menú")
+        print("1. Consultar API  2. Historial API  0. Volver menu")
         
         opcion = input("Opción: ").strip()
         
@@ -148,20 +148,22 @@ def mostrar_mis_registros(usuario_actual):
         print("\n[!] Debe iniciar sesión para consultar sus registros.\n")
         return
 
+    # Obtener el nombre del usuario para el encabezado
+    nombre_user = usuario_actual.get('nombre_usuario', usuario_actual.get('username', 'Desconocido'))
+
     try:
         # Llama a la función del servicio gestion_registros
         registros = obtener_mis_registros(usuario_actual)
         
-        
         if not registros:
             print("\n-------------------------------------------------")
-            print(" No se encontraron registros de tiempo asociados.")
+            print(f" No se encontraron registros de tiempo para: {nombre_user}")
             print("-------------------------------------------------\n")
             return
 
-        # Si existen registros, se muestran en consola
+        # Muestra el nombre del usuario ingresado 
         print("\n=========================================")
-        print("         MIS REGISTROS DE TIEMPO          ")
+        print(f" MIS REGISTROS DE TIEMPO (Usuario: {nombre_user}) ")
         print("=========================================")
         for reg in registros:
             reg_id = getattr(reg, "id", 1)
@@ -175,7 +177,7 @@ def mostrar_mis_registros(usuario_actual):
 
     except Exception as error:
         print(f"\n[!] Error al obtener los registros: {error}\n")
-        
+
 def procesar_opcion_menu(opcion, usuario_actual):
     if opcion == "1":
         mostrar_perfil(usuario_actual)

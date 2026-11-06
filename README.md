@@ -50,11 +50,7 @@ Ingresar a la carpeta fuente:
 
 cd src
 
-
-Cargar base de datos inicial (incluye creación de usuario administrador):
-
-python semilla_bd.py
-
+Antes de iniciar la aplicacion inicial debes borrar ecotech db ya que para que no de error al iniciar el main.
 
 Iniciar la aplicación principal:
 

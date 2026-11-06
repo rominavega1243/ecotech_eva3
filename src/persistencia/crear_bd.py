@@ -75,7 +75,7 @@ def crear_tablas():
         '''
     cursor.execute(sql)
 
-    # 4. Tabla registro_tiempo (Se corrigió sintaxis anidada y atributos según dominio)
+    # 4. Tabla registro_tiempo (Se corrigió sintaxis  y atributos según dominio)
     if obtener_motor() == "sqlite":
         sql = '''
         CREATE TABLE IF NOT EXISTS registro_tiempo (

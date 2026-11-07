@@ -1,26 +1,28 @@
 import math
 from getpass import getpass
 import requests
-
 from entradas import pedir_dato
 from servicios.autenticacion import registrar_usuario, autenticar 
 from dominio.usuario import Usuario
-
-# Servicios y DAOs reales
 from servicios.gestion_empleados import listar_todos 
 from servicios.gestion_registros import obtener_mis_registros 
 from persistencia.departamento_dao import DepartamentoDAO
 from persistencia.proyecto_dao import ProyectoDAO
 from persistencia.registro_tiempo_dao import RegistroTiempoDAO 
+from persistencia.empleado_dao import EmpleadoDAO
+from menus.menu_departamento import _listar_departamentos_bd
+from menus.menu_proyecto import _listar_proyectos_bd
+from menus.menu_empleado import _listar_empleados_bd
+
+
+
 
 # -------------------------------------------------------------
-# CONSTANTES DE INTERFAZ (Elimina advertencias de SonarQube)
+# CONSTANTES DE INTERFAZ
 # -------------------------------------------------------------
 SEPARADOR = "========================================="
 VOLVER_CRUDS = "0. Volver al menú de CRUDs"
 VOLVER_PRINCIPAL = "0. Volver al menú principal"
-PROMPT_OPCION = "Seleccione: "
-
 # -------------------------------------------------------------
 # 1. FUNCIONES DE SERVICIO Y VISTAS DE PERFIL
 # -------------------------------------------------------------
@@ -122,7 +124,7 @@ def consultar_indicador(usuario_actual):
     while True:
         print("\n--- MENÚ DE OPCIONES DE API ---")
         print(f"1. Consultar API   2. Historial API   {VOLVER_PRINCIPAL}")
-        opcion = input(PROMPT_OPCION).strip()
+        opcion = input("Seleccione opción de API [1,3]: ").strip()
         if opcion == "1":
             mostrar_indicador()
         elif opcion == "2":
@@ -165,145 +167,142 @@ def mostrar_mis_registros(usuario_actual):
 
 
 # -------------------------------------------------------------
-# 2. SUBMENÚS INDIVIDUALES DE CRUD (VOLVER AL MENÚ DE CRUDs)
+# 2. SUBMENÚS CRUD 
 # -------------------------------------------------------------
 
+# --- 2.1 CRUD EMPLEADOS ---
 def menu_crud_empleados(usuario_actual):
+    _ = usuario_actual
     while True:
-        print(f"\n{SEPARADOR}")
-        print("         CRUD DE EMPLEADOS (ADMIN)       ")
-        print(SEPARADOR)
-        print("1. Listar Empleados")
-        print("2. Registrar Nuevo Empleado")
-        print("3. Actualizar Empleado")
-        print("4. Eliminar Empleado")
-        print(VOLVER_CRUDS)
-        print(SEPARADOR)
-        op = input(PROMPT_OPCION).strip()
+        print(f"\n{SEPARADOR}\n         CRUD DE EMPLEADOS (ADMIN)       \n{SEPARADOR}\n1. Listar Empleados\n2. Registrar Nuevo Empleado\n3. Actualizar Empleado\n4. Eliminar Empleado\n{VOLVER_CRUDS}\n{SEPARADOR}")
+        opcion = input("Seleccione opción [0-4]: ").strip()
         
-        if op == "1":
-            print("\n--- LISTA DE EMPLEADOS DE LA BD ---")
-            try:
-                # Consulta directa al DAO para evitar el bloqueo del servicio exigir_admin
-                from persistencia.empleado_dao import EmpleadoDAO
-                empleados = EmpleadoDAO.listar() if hasattr(EmpleadoDAO, "listar") else EmpleadoDAO().obtener_todos()
-                if not empleados:
-                    print("No hay empleados registrados en la base de datos.")
-                else:
-                    for emp in empleados:
-                        # Extrae variables limpia o usa __str__
-                        emp_id = getattr(emp, 'id', getattr(emp, 'empleado_id', 'N/A'))
-                        nombre = getattr(emp, 'nombre', getattr(emp, 'nombre_empleado', str(emp)))
-                        rut = getattr(emp, 'rut', '')
-                        print(f"ID: {emp_id} | Empleado: {nombre} | RUT: {rut}")
-            except Exception as e:
-                print(f"Error al consultar BD: {e}")
-        elif op in ("2", "3", "4"):
-            _ejecutar_opcion_empleado(op)
-        elif op == "0":
+        if opcion == "0":
             break
-
+        if opcion == "1":
+            _listar_empleados_bd()
+        elif opcion == "2" or opcion == "3" or opcion == "4":
+            _ejecutar_opcion_empleado(opcion)
+            
+            
 def _ejecutar_opcion_empleado(op):
-    if op == "2":
-        dep_id = pedir_dato("Asignar Departamento ID: ", int)
-        nom = input("Nombre del Empleado: ").strip()
-        print(f"\n Éxito: Empleado '{nom}' guardado en BD con Departamento ID {dep_id}.")
-    elif op == "3":
-        emp_id = pedir_dato("ID del Empleado a modificar: ", int)
-        print(f"\n Éxito: Empleado ID {emp_id} actualizado.")
-    elif op == "4":
-        emp_id = pedir_dato("ID del Empleado a eliminar: ", int)
-        print(f"\n Éxito: Empleado ID {emp_id} eliminado de la BD.")
+    try:
+        if op == "2":
+            dep_id = pedir_dato("Asignar Departamento ID: ", int)
+            nom = input("Nombre del Empleado: ").strip()
+            rut = input("RUT del Empleado: ").strip()
+            if hasattr(EmpleadoDAO, "insertar"):
+                EmpleadoDAO.insertar(nom, rut, dep_id)
+            else:
+                EmpleadoDAO().insertar(nom, rut, dep_id)
+            print(f"\n Éxito: Empleado '{nom}' guardado en BD.")
 
+        elif op == "3":
+            emp_id = pedir_dato("ID del Empleado a modificar: ", int)
+            nom = input("Nuevo nombre del Empleado: ").strip()
+            if hasattr(EmpleadoDAO, "actualizar"):
+                EmpleadoDAO.actualizar(emp_id, nom)
+            else:
+                EmpleadoDAO().actualizar(emp_id, nom)
+            print(f"\n Éxito: Empleado ID {emp_id} actualizado.")
+
+        elif op == "4":
+            emp_id = pedir_dato("ID del Empleado a eliminar: ", int)
+            if hasattr(EmpleadoDAO, "eliminar"):
+                EmpleadoDAO.eliminar(emp_id)
+            else:
+                EmpleadoDAO().eliminar(emp_id)
+            print(f"\n Éxito: Empleado ID {emp_id} eliminado de la BD.")
+    except Exception as e:
+        print(f"\n Error al operar en BD: {e}")
 
 # --- 2.2 CRUD DEPARTAMENTOS ---
 def menu_crud_departamentos():
     while True:
-        print(f"\n{SEPARADOR}")
-        print("       CRUD DE DEPARTAMENTOS (ADMIN)     ")
-        print(SEPARADOR)
-        print("1. Listar Departamentos")
-        print("2. Registrar Nuevo Departamento")
-        print("3. Actualizar Departamento")
-        print("4. Eliminar Departamento")
-        print(VOLVER_CRUDS)
-        print(SEPARADOR)
-        op = input(PROMPT_OPCION).strip()
+        print(f"\n{SEPARADOR}\n       CRUD DE DEPARTAMENTOS (ADMIN)     \n{SEPARADOR}\n1. Listar Departamentos\n2. Registrar Nuevo Departamento\n3. Actualizar Departamento\n4. Eliminar Departamento\n{VOLVER_CRUDS}\n{SEPARADOR}")
+        opcion = input("Ingrese opción [0-4]: ").strip()
         
-        if op == "1":
-            print("\n--- LISTA DE DEPARTAMENTOS DE LA BD ---")
-            try:
-                deps = DepartamentoDAO.listar() if hasattr(DepartamentoDAO, "listar") else DepartamentoDAO().obtener_todos()
-                if not deps:
-                    print("No hay departamentos registrados.")
-                else:
-                    for d in deps:
-                        # Extrae id, nombre y gerente para que no salga object at 0x...
-                        dep_id = getattr(d, 'id', getattr(d, 'departamento_id', 'N/A'))
-                        nombre = getattr(d, 'nombre', '')
-                        gerente = getattr(d, 'gerente', '')
-                        print(f"ID: {dep_id} | Departamento: {nombre} | Gerente: {gerente}")
-            except Exception as e:
-                print(f"Error al listar departamentos: {e}")
-        elif op in ("2", "3", "4"):
-            _ejecutar_opcion_departamento(op)
-        elif op == "0":
+        if opcion == "0":
             break
+        if opcion == "1":
+            _listar_departamentos_bd()
+        elif opcion == "2" or opcion == "3" or opcion == "4":
+            _ejecutar_opcion_departamento(opcion)
 
 def _ejecutar_opcion_departamento(op):
-    if op == "2":
-        nom = input("Nombre del Departamento: ").strip()
-        print(f"\n Éxito: Departamento '{nom}' registrado en BD.")
-    elif op == "3":
-        dep_id = pedir_dato("ID del Departamento a modificar: ", int)
-        print(f"\n Éxito: Departamento ID {dep_id} actualizado.")
-    elif op == "4":
-        dep_id = pedir_dato("ID del Departamento a eliminar: ", int)
-        print(f"\n Éxito: Departamento ID {dep_id} eliminado.")
+    try:
+        if op == "2":
+            nom = input("Nombre del Departamento: ").strip()
+            gerente = input("Gerente (opcional): ").strip()
+            # Guarda de verdad en la base de datos ecotech.db
+            if hasattr(DepartamentoDAO, "insertar"):
+                DepartamentoDAO.insertar(nom, gerente)
+            else:
+                DepartamentoDAO().insertar(nom, gerente)
+            print(f"\n Éxito: Departamento '{nom}' registrado en BD.")
+
+        elif op == "3":
+            dep_id = pedir_dato("ID del Departamento a modificar: ", int)
+            nom = input("Nuevo nombre del Departamento: ").strip()
+            # Actualiza en la BD
+            if hasattr(DepartamentoDAO, "actualizar"):
+                DepartamentoDAO.actualizar(dep_id, nom)
+            else:
+                DepartamentoDAO().actualizar(dep_id, nom)
+            print(f"\n Éxito: Departamento ID {dep_id} actualizado.")
+
+        elif op == "4":
+            dep_id = pedir_dato("ID del Departamento a eliminar: ", int)
+            # Elimina en la BD
+            if hasattr(DepartamentoDAO, "eliminar"):
+                DepartamentoDAO.eliminar(dep_id)
+            else:
+                DepartamentoDAO().eliminar(dep_id)
+            print(f"\n Éxito: Departamento ID {dep_id} eliminado.")
+    except Exception as e:
+        print(f"\n Error al operar en BD: {e}")
 
 
 # --- 2.3 CRUD PROYECTOS ---
 def menu_crud_proyectos():
     while True:
-        print(f"\n{SEPARADOR}")
-        print("         CRUD DE PROYECTOS (ADMIN)       ")
-        print(SEPARADOR)
-        print("1. Listar Proyectos")
-        print("2. Crear Nuevo Proyecto")
-        print("3. Actualizar Proyecto")
-        print("4. Eliminar Proyecto")
-        print(VOLVER_CRUDS)
-        print(SEPARADOR)
-        op = input(PROMPT_OPCION).strip()
+        print(f"\n{SEPARADOR}\n         CRUD DE PROYECTOS (ADMIN)       \n{SEPARADOR}\n1. Listar Proyectos\n2. Crear Nuevo Proyecto\n3. Actualizar Proyecto\n4. Eliminar Proyecto\n{VOLVER_CRUDS}\n{SEPARADOR}")
+        opcion = input("Elija una opción [0-4]: ").strip()
         
-        if op == "1":
-            print("\n--- LISTA DE PROYECTOS DE LA BD ---")
-            try:
-                proys = ProyectoDAO.listar() if hasattr(ProyectoDAO, "listar") else ProyectoDAO().obtener_todos()
-                if not proys:
-                    print("No hay proyectos registrados.")
-                else:
-                    for p in proys:
-                        proy_id = getattr(p, 'id', getattr(p, 'proyecto_id', 'N/A'))
-                        nombre = getattr(p, 'nombre', str(p))
-                        print(f"ID: {proy_id} | Proyecto: {nombre}")
-            except Exception as e:
-                print(f"Error al listar proyectos: {e}")
-        elif op in ("2", "3", "4"):
-            _ejecutar_opcion_proyecto(op)
-        elif op == "0":
+        if opcion == "0":
             break
-
+        if opcion == "1":
+            _listar_proyectos_bd()
+        elif opcion == "2" or opcion == "3" or opcion == "4":
+            _ejecutar_opcion_proyecto(opcion)
+            
+            
 def _ejecutar_opcion_proyecto(op):
-    if op == "2":
-        nom = input("Nombre del Proyecto: ").strip()
-        print(f"\n Éxito: Proyecto '{nom}' guardado en BD.")
-    elif op == "3":
-        proy_id = pedir_dato("ID del Proyecto a modificar: ", int)
-        print(f"\n Éxito: Proyecto ID {proy_id} actualizado.")
-    elif op == "4":
-        proy_id = pedir_dato("ID del Proyecto a eliminar: ", int)
-        print(f"\n Éxito: Proyecto ID {proy_id} eliminado.")
+    try:
+        if op == "2":
+            nom = input("Nombre del Proyecto: ").strip()
+            if hasattr(ProyectoDAO, "insertar"):
+                ProyectoDAO.insertar(nom)
+            else:
+                ProyectoDAO().insertar(nom)
+            print(f"\n Éxito: Proyecto '{nom}' guardado en BD.")
+        elif op == "3":
+            proy_id = pedir_dato("ID del Proyecto a modificar: ", int)
+            nom = input("Nuevo nombre del Proyecto: ").strip()
+            if hasattr(ProyectoDAO, "actualizar"):
+                ProyectoDAO.actualizar(proy_id, nom)
+            else:
+                ProyectoDAO().actualizar(proy_id, nom)
+            print(f"\n Éxito: Proyecto ID {proy_id} actualizado en BD.")
+        elif op == "4":
+            proy_id = pedir_dato("ID del Proyecto a eliminar: ", int)
+            if hasattr(ProyectoDAO, "eliminar"):
+                ProyectoDAO.eliminar(proy_id)
+            else:
+                ProyectoDAO().eliminar(proy_id)
+            print(f"\n Éxito: Proyecto ID {proy_id} eliminado de BD.")
+    except Exception as e:
+        print(f"\n Error al operar en BD: {e}")
 
 
 # --- 2.4 CRUD REGISTRO DE TIEMPO ---
@@ -318,7 +317,7 @@ def menu_crud_registro_tiempo():
         print("4. Eliminar Registro de Tiempo")
         print(VOLVER_CRUDS)
         print(SEPARADOR)
-        op = input(PROMPT_OPCION).strip()
+        op = input("ingresa opcion  [0-5]: ").strip()
         
         if op == "1":
             _crear_registro_tiempo_bd()
@@ -331,8 +330,7 @@ def menu_crud_registro_tiempo():
 
 def _crear_registro_tiempo_bd():
     print("\n--- ASOCIAR REGISTRO DE TIEMPO A UN EMPLEADO ---")
-    print("IDs disponibles: [1: admin | 2: atorres | 3: lvargas]")
-    emp_id = pedir_dato("Ingrese empleado_id (ejemplo 3 para lvargas): ", int)
+    emp_id = pedir_dato("Ingrese empleado_id: ", int)
     proy_id = pedir_dato("Ingrese proyecto_id: ", int)
     fecha = input("Fecha (YYYY-MM-DD): ").strip()
     horas = pedir_dato("Cantidad de horas: ", float)
@@ -353,7 +351,7 @@ def _listar_registros_tiempo_bd():
         if hasattr(RegistroTiempoDAO, "listar"):
             todos = RegistroTiempoDAO.listar()
         elif hasattr(RegistroTiempoDAO, "obtener_todos"):
-            todos = RegistroTiempoDAO().obtener_todos()
+            todos = RegistroTiempoDAO.obtener_todos()
         else:
             todos = RegistroTiempoDAO().obtener_todos()
 
@@ -372,10 +370,96 @@ def _listar_registros_tiempo_bd():
         print(f"Error al consultar BD: {e}")
 
 def _ejecutar_opcion_registro_tiempo(op):
-    if op == "3":
-        reg_id = pedir_dato("ID del Registro a actualizar: ", int)
-        horas = pedir_dato("Nuevas horas: ", float)
-        print(f"\n Éxito: Registro ID {reg_id} actualizado.")
-    elif op == "4":
-        reg_id = pedir_dato("ID del Registro a eliminar: ", int)
-        print(f"\n Éxito: Registro ID {reg_id} eliminado.")
+    try:
+        if op == "3":
+            reg_id = pedir_dato("ID del Registro a actualizar: ", int)
+            horas = pedir_dato("Nuevas horas: ", float)
+            if hasattr(RegistroTiempoDAO, "actualizar"):
+                RegistroTiempoDAO.actualizar(reg_id, horas)
+            else:
+                RegistroTiempoDAO().actualizar(reg_id, horas)
+            print(f"\n Éxito: Registro ID {reg_id} actualizado en BD.")
+        elif op == "4":
+            reg_id = pedir_dato("ID del Registro a eliminar: ", int)
+            if hasattr(RegistroTiempoDAO, "eliminar"):
+                RegistroTiempoDAO.eliminar(reg_id)
+            else:
+                RegistroTiempoDAO().eliminar(reg_id)
+            print(f"\n Éxito: Registro ID {reg_id} eliminado de BD.")
+    except Exception as e:
+        print(f"\n Error al operar en BD: {e}")
+# -------------------------------------------------------------
+# 3. MENÚ PRINCIPAL DE CRUDs DE ADMINISTRACIÓN
+# -------------------------------------------------------------
+
+def menu_principal_cruds(usuario_actual):
+    while True:
+        print(f"\n{SEPARADOR}")
+        print("       MENÚ DE CRUDs (ADMINISTRACIÓN)    ")
+        print(SEPARADOR)
+        print("1. CRUD Empleados")
+        print("2. CRUD Departamentos")
+        print("3. CRUD Proyectos")
+        print("4. CRUD Registros de Tiempo")
+        print("-----------------------------------------")
+        print(VOLVER_PRINCIPAL)
+        print(SEPARADOR)
+        
+        op = input("Seleccione opción [0-5]: ").strip()
+        
+        if op == "1":
+            menu_crud_empleados(usuario_actual)
+        elif op == "2":
+            menu_crud_departamentos()
+        elif op == "3":
+            menu_crud_proyectos()
+        elif op == "4":
+            menu_crud_registro_tiempo()
+        elif op == "0":
+            break
+
+
+# -------------------------------------------------------------
+# 4. MENÚ PRIVADO DE USUARIO
+# -------------------------------------------------------------
+
+def menu_privado(usuario_actual):
+    if usuario_actual is None:
+        print("Debe iniciar sesión.")
+        return "9"
+    
+    nombre_user = usuario_actual.get('nombre_usuario', usuario_actual.get('username', 'Desconocido'))
+    nombre_user_lower = str(nombre_user).strip().lower()
+
+    if nombre_user_lower == "admin":
+        menu_principal_cruds(usuario_actual)
+
+    while True:
+        print(f"\n{SEPARADOR}")
+        print(f"        MENÚ PRINCIPAL ({nombre_user})   ")
+        print(SEPARADOR)
+        print("1. Mi ficha")
+        print(f"2. Mis registros (Usuario: {nombre_user})")
+        print("3. Consultar API")
+        
+        if nombre_user_lower == "admin":
+            print("4. Menú de CRUDs de Administración")
+            
+        print("-----------------------------------------")
+        print("9. Cerrar sesión  0. Salir del programa")
+        print(SEPARADOR)
+        
+        opcion = input("Seleccione: ").strip()
+        
+        if opcion == "1":
+            mostrar_perfil(usuario_actual)
+        elif opcion == "2":
+            mostrar_mis_registros(usuario_actual)
+        elif opcion == "3":
+            consultar_indicador(usuario_actual)
+        elif opcion == "4" and nombre_user_lower == "admin":
+            menu_principal_cruds(usuario_actual)
+        elif opcion in ("0", "9"):
+            return opcion
+        else:
+            print("Opción no válida.")

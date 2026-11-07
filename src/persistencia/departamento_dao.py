@@ -6,9 +6,9 @@ class DepartamentoDAO:
     def insertar(departamento: Departamento):
         conn = abrir_conexion()
         cursor = conn.cursor()
-        marcador = marcador_sql()
+        m = marcador_sql()  # Obtenemos el marcador una sola vez
         cursor.execute(
-            f"INSERT INTO departamento (nombre, gerente) VALUES ({marcador}, {marcador})",
+            f"INSERT INTO departamento (nombre, gerente) VALUES ({m}, {m})",
             (departamento.nombre, departamento.gerente)
         )
         conn.commit()

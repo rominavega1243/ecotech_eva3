@@ -16,8 +16,6 @@ class Empleado:
         self.id = id
 
     def mostrar_datos(self) -> str:
-        #return f"{self.nombre} - {self.direccion} - {self.telefono} - {self.correo} - {self.fechainiciocontrato} - {self.salario} - {self.id}"
-        
         return f"{self.nombre} - {self.correo} - {self.id}"
 
     def gestionar_informacion(self) -> bool:

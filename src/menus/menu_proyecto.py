@@ -58,7 +58,7 @@ def registrar_proyecto():
     except Exception as e:
         print(f"Error al registrar el proyecto: {e}")
 
-def listar_proyectos():
+def _listar_proyectos_bd():
     try:
         proyectos = ProyectoDAO.listar_proyectos()
         if proyectos:
@@ -77,7 +77,7 @@ def buscar_proyecto():
         if proyecto:
             print(f"ID: {proyecto[0]}, Nombre: {proyecto[1]}, Descripción: {proyecto[2]}, Fecha: {proyecto[3]}")
         else:
-            print("Proyecto no encontrado.")
+            print("No encontrado.")
     except Exception as e:
         print(f"Error al buscar el proyecto: {e}")
 

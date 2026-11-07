@@ -49,7 +49,7 @@ def registrar_departamento():
     except Exception as e:
         print(f"No fue posible registrar el departamento: {e}")
 
-def listar_departamentos():
+def _listar_departamentos_bd():
     departamentos = DepartamentoDAO.listar()
     if departamentos:
         print("\nLista de departamentos:")
@@ -64,7 +64,7 @@ def buscar_departamento():
     if departamento:
         print(f"ID: {departamento.idDepartamento}, Nombre: {departamento.nombre}, Gerente: {departamento.gerente}")
     else:
-        print("Departamento no encontrado.")
+        print(" No encontrado.")
 
 def actualizar_departamento():
     id_departamento = input("Ingrese el ID del departamento a actualizar: ").strip()

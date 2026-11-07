@@ -3,33 +3,6 @@ from datetime import datetime
 from dominio.empleado import Empleado
 from persistencia.empleado_dao import EmpleadoDAO
 
-def menu_empleado():
-    print("\n===== ECOTECH - EMPLEADOS =====")
-    print("1. Registrar empleado")
-    print("2. Listar empleados")
-    print("3. Buscar empleado")
-    print("4. Actualizar empleado")
-    print("5. Eliminar empleado")
-    print("0. Salir")
-
-def ejecutar_menu():
-    while True:
-        menu_empleado()
-        opcion = input("Selecciona una opción: ")
-        if opcion == "1":
-            registrar_empleado()
-        elif opcion == "2":
-            listar_empleados()
-        elif opcion == "3":
-            buscar_empleado()
-        elif opcion == "4":
-            actualizar_empleado()
-        elif opcion == "5":
-            eliminar_empleado()
-        elif opcion == "0":
-            break
-        else:
-            print("Opción inválida, intenta nuevamente.")
 
 def registrar_empleado():
     while True:
@@ -37,7 +10,6 @@ def registrar_empleado():
         if nombre.replace(" ", "").isalpha() and len(nombre) <= 10:
             break
         print("Error: El nombre solo puede contener 10 palabras.")
-
 
     while True:
         correo = input("Correo: ").strip()
@@ -49,7 +21,7 @@ def registrar_empleado():
         telefono = input("Teléfono: ").strip()
         if telefono.isdigit() and len(telefono) >= 8:
             break
-        print("Error: El teléfono debe contener solo números  8.")
+        print("Error: El teléfono debe contener solo números (mínimo 8).")
 
     while True:
         fecha_inicio_contrato = input("Fecha de inicio de contrato (YYYY-MM-DD): ").strip()
@@ -68,14 +40,22 @@ def registrar_empleado():
         except ValueError:
             print("Error: El salario debe ser numérico.")
 
-    empleado = Empleado(nombre=nombre, correo=correo, telefono=telefono, fecha_inicio_contrato=fecha_inicio_contrato, salario=salario)
+    empleado = Empleado(
+        nombre=nombre, 
+        correo=correo, 
+        telefono=telefono, 
+        fecha_inicio_contrato=fecha_inicio_contrato, 
+        salario=salario
+    )
+    
     try:
         EmpleadoDAO.insertar(empleado)
         print("Empleado registrado correctamente.")
     except Exception as e:
         print(f"No fue posible registrar el empleado: {e}")
 
-def listar_empleados():
+
+def _listar_empleados_bd():
     empleados = EmpleadoDAO.listar()
     if empleados:
         print("\nLista de empleados:")
@@ -84,83 +64,52 @@ def listar_empleados():
     else:
         print("No hay empleados registrados.")
 
+
 def buscar_empleado():
     id_empleado = input("Ingrese el ID del empleado a buscar: ").strip()
     empleado = EmpleadoDAO.buscar_por_id(id_empleado)
     if empleado:
         print(f"ID: {empleado.id}, Nombre: {empleado.nombre}, Correo: {empleado.correo}, Teléfono: {empleado.telefono}, Salario: {empleado.salario}")
     else:
-        print("Empleado no encontrado.")
+        print("No se encontró al empleado buscado.")
+
 
 def actualizar_empleado():
     id_empleado = input("Ingrese el ID del empleado a actualizar: ").strip()
     empleado = EmpleadoDAO.buscar_por_id(id_empleado)
     if not empleado:
-        print("Empleado no encontrado.")
+        print("Empleado no existe para actualizar.")
         return
 
-    while True:
-        nombre = input(f"Nombre ({empleado.nombre}): ").strip()
-        if not nombre:
-            nombre = empleado.nombre
-            break
-        elif nombre.replace(" ", "").isalpha():
-            break
-        print("Error: El nombre solo puede contener letras.")
+    nombre = input(f"Nombre ({empleado.nombre}): ").strip()
+    if nombre:
+        empleado.nombre = nombre
 
-    while True:
-        correo = input(f"Correo ({empleado.correo}): ").strip()
-        if not correo:
-            correo = empleado.correo
-            break
-        elif re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", correo):
-            break
-        print("Error: Formato inválido. Ejemplo: usuario@correo.com")
+    correo = input(f"Correo ({empleado.correo}): ").strip()
+    if correo:
+        empleado.correo = correo
 
-    while True:
-        telefono = input(f"Teléfono ({empleado.telefono}): ").strip()
-        if not telefono:
-            telefono = empleado.telefono
-            break
-        elif telefono.isdigit() and len(telefono) >= 8:
-            break
-        print("Error: El teléfono debe contener solo números (mínimo 8).")
+    telefono = input(f"Teléfono ({empleado.telefono}): ").strip()
+    if telefono:
+        empleado.telefono = telefono
 
-    while True:
-        fecha = input(f"Fecha Contrato ({empleado.fecha_inicio_contrato}): ").strip()
-        if not fecha:
-            fecha = empleado.fecha_inicio_contrato
-            break
+    fecha_inicio_contrato = input(f"Fecha de inicio ({empleado.fecha_inicio_contrato}): ").strip()
+    if fecha_inicio_contrato:
+        empleado.fecha_inicio_contrato = fecha_inicio_contrato
+
+    salario_str = input(f"Salario ({empleado.salario}): ").strip()
+    if salario_str:
         try:
-            datetime.strptime(fecha, "%Y-%m-%d")
-            break
+            empleado.salario = float(salario_str)
         except ValueError:
-            print("Error: Formato de fecha incorrecto. Use YYYY-MM-DD.")
+            print("Error: El salario debe ingresarse como número.")
 
-    while True:
-        salario_str = input(f"Salario ({empleado.salario}): ").strip()
-        if not salario_str:
-            salario = empleado.salario
-            break
-        try:
-            salario = float(salario_str)
-            if salario > 0:
-                break
-            print("Error: El salario debe ser mayor a 0.")
-        except ValueError:
-            print("Error: El salario debe ser numérico.")
-
-    empleado.nombre = nombre
-    empleado.correo = correo
-    empleado.telefono = telefono
-    empleado.fecha_inicio_contrato = fecha
-    empleado.salario = salario
-    
     try:
         EmpleadoDAO.actualizar(empleado)
         print("Empleado actualizado correctamente.")
     except Exception as e:
-        print(f"No fue posible actualizar el empleado: {e}")
+        print(f"Error al actualizar empleado: {e}")
+
 
 def eliminar_empleado():
     id_empleado = input("Ingrese el ID del empleado a eliminar: ").strip()
@@ -172,8 +121,38 @@ def eliminar_empleado():
                 EmpleadoDAO.eliminar(id_empleado)
                 print("Empleado eliminado correctamente.")
             except Exception as e:
-                print(f"No fue posible eliminar el empleado: {e}")
+                print(f"No existe el empleado a eliminar: {e}")
         else:
             print("Eliminación cancelada.")
     else:
         print("Empleado no encontrado.")
+
+
+def menu_empleado():
+    print("\n===== ECOTECH - EMPLEADOS =====")
+    print("1. Registrar empleado")
+    print("2. Listar empleados")
+    print("3. Buscar empleado")
+    print("4. Actualizar empleado")
+    print("5. Eliminar empleado")
+    print("0. Salir")
+
+
+def ejecutar_menu():
+    while True:
+        menu_empleado()
+        opcion = input("Selecciona una opción: ")
+        if opcion == "1":
+            registrar_empleado()
+        elif opcion == "2":
+            _listar_empleados_bd()
+        elif opcion == "3":
+            buscar_empleado()
+        elif opcion == "4":
+            actualizar_empleado()
+        elif opcion == "5":
+            eliminar_empleado()
+        elif opcion == "0":
+            break
+        else:
+            print("Opción inválida, intenta nuevamente.")

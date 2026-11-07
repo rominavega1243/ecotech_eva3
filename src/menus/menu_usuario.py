@@ -4,6 +4,10 @@ import requests
 from entradas import pedir_dato
 from servicios.autenticacion import registrar_usuario, autenticar 
 from dominio.usuario import Usuario
+from dominio.empleado import Empleado  
+from dominio.departamento import Departamento
+from dominio.proyecto import Proyecto
+from dominio.registro_tiempo import RegistroTiempo
 from servicios.gestion_empleados import listar_todos 
 from servicios.gestion_registros import obtener_mis_registros 
 from persistencia.departamento_dao import DepartamentoDAO
@@ -13,8 +17,6 @@ from persistencia.empleado_dao import EmpleadoDAO
 from menus.menu_departamento import _listar_departamentos_bd
 from menus.menu_proyecto import _listar_proyectos_bd
 from menus.menu_empleado import _listar_empleados_bd
-
-
 
 
 # -------------------------------------------------------------
@@ -191,27 +193,36 @@ def _ejecutar_opcion_empleado(op):
             dep_id = pedir_dato("Asignar Departamento ID: ", int)
             nom = input("Nombre del Empleado: ").strip()
             rut = input("RUT del Empleado: ").strip()
-            if hasattr(EmpleadoDAO, "insertar"):
-                EmpleadoDAO.insertar(nom, rut, dep_id)
-            else:
-                EmpleadoDAO().insertar(nom, rut, dep_id)
+            
+            # SOLUCIÓN: Creamos el objeto Empleado con datos por defecto
+            nuevo_empleado = Empleado(
+                nombre=nom,
+                correo=f"{nom.replace(' ', '').lower()}@ecotech.com",
+                telefono=rut, 
+                fecha_inicio_contrato="2026-01-01",
+                salario=1.0
+            )
+            
+            # Insertamos el objeto correctamente (1 argumento)
+            EmpleadoDAO.insertar(nuevo_empleado)
             print(f"\n Éxito: Empleado '{nom}' guardado en BD.")
 
         elif op == "3":
             emp_id = pedir_dato("ID del Empleado a modificar: ", int)
             nom = input("Nuevo nombre del Empleado: ").strip()
-            if hasattr(EmpleadoDAO, "actualizar"):
-                EmpleadoDAO.actualizar(emp_id, nom)
+            
+            # SOLUCIÓN PARA ACTUALIZAR: Buscamos el empleado, lo editamos y lo guardamos (1 argumento)
+            empleado = EmpleadoDAO.buscar_por_id(emp_id)
+            if empleado:
+                empleado.nombre = nom
+                EmpleadoDAO.actualizar(empleado)
+                print(f"\n Éxito: Empleado ID {emp_id} actualizado.")
             else:
-                EmpleadoDAO().actualizar(emp_id, nom)
-            print(f"\n Éxito: Empleado ID {emp_id} actualizado.")
+                print(f"\n Error: No existe un empleado con ID {emp_id}.")
 
         elif op == "4":
             emp_id = pedir_dato("ID del Empleado a eliminar: ", int)
-            if hasattr(EmpleadoDAO, "eliminar"):
-                EmpleadoDAO.eliminar(emp_id)
-            else:
-                EmpleadoDAO().eliminar(emp_id)
+            EmpleadoDAO.eliminar(emp_id)
             print(f"\n Éxito: Empleado ID {emp_id} eliminado de la BD.")
     except Exception as e:
         print(f"\n Error al operar en BD: {e}")
@@ -234,31 +245,32 @@ def _ejecutar_opcion_departamento(op):
         if op == "2":
             nom = input("Nombre del Departamento: ").strip()
             gerente = input("Gerente (opcional): ").strip()
-            # Guarda de verdad en la base de datos ecotech.db
-            if hasattr(DepartamentoDAO, "insertar"):
-                DepartamentoDAO.insertar(nom, gerente)
-            else:
-                DepartamentoDAO().insertar(nom, gerente)
+            
+            # SOLUCIÓN: Le pasamos idDepartamento (como 0 o None porque es nuevo), el nombre y el gerente
+            nuevo_depto = Departamento(idDepartamento=0, nombre=nom, gerente=gerente) 
+            
+            # Pasamos el objeto completo al DAO
+            DepartamentoDAO.insertar(nuevo_depto)
             print(f"\n Éxito: Departamento '{nom}' registrado en BD.")
 
         elif op == "3":
             dep_id = pedir_dato("ID del Departamento a modificar: ", int)
             nom = input("Nuevo nombre del Departamento: ").strip()
-            # Actualiza en la BD
-            if hasattr(DepartamentoDAO, "actualizar"):
-                DepartamentoDAO.actualizar(dep_id, nom)
+            
+            # Actualizar: Buscamos, modificamos y guardamos el objeto
+            depto = DepartamentoDAO.buscar_por_id(dep_id)
+            if depto:
+                depto.nombre = nom
+                DepartamentoDAO.actualizar(depto)
+                print(f"\n Éxito: Departamento ID {dep_id} actualizado.")
             else:
-                DepartamentoDAO().actualizar(dep_id, nom)
-            print(f"\n Éxito: Departamento ID {dep_id} actualizado.")
+                print(f"\n Error: No existe un departamento con ID {dep_id}.")
 
         elif op == "4":
             dep_id = pedir_dato("ID del Departamento a eliminar: ", int)
-            # Elimina en la BD
-            if hasattr(DepartamentoDAO, "eliminar"):
-                DepartamentoDAO.eliminar(dep_id)
-            else:
-                DepartamentoDAO().eliminar(dep_id)
+            DepartamentoDAO.eliminar(dep_id)
             print(f"\n Éxito: Departamento ID {dep_id} eliminado.")
+            
     except Exception as e:
         print(f"\n Error al operar en BD: {e}")
 
@@ -281,19 +293,46 @@ def _ejecutar_opcion_proyecto(op):
     try:
         if op == "2":
             nom = input("Nombre del Proyecto: ").strip()
+            desc = input("Descripción (opcional): ").strip()
+            fecha = input("Fecha de inicio (YYYY-MM-DD, opcional): ").strip()
+            
+            # SOLUCIÓN: Le enviamos todos los datos que exige la clase Proyecto.
+            # Si no escriben nada, usamos valores por defecto.
+            nuevo_proyecto = Proyecto(
+                id=0,  # Si tu clase usa otro nombre como id_proyecto=0, cámbialo aquí
+                nombre=nom,
+                descripcion=desc if desc else "Sin descripción",
+                fecha_inicio=fecha if fecha else "2026-11-06"
+            ) 
+            
+            # Pasamos UN solo argumento (el objeto completo) al DAO
             if hasattr(ProyectoDAO, "insertar"):
-                ProyectoDAO.insertar(nom)
+                ProyectoDAO.insertar(nuevo_proyecto)
             else:
-                ProyectoDAO().insertar(nom)
+                ProyectoDAO().insertar(nuevo_proyecto)
             print(f"\n Éxito: Proyecto '{nom}' guardado en BD.")
+            
         elif op == "3":
             proy_id = pedir_dato("ID del Proyecto a modificar: ", int)
             nom = input("Nuevo nombre del Proyecto: ").strip()
-            if hasattr(ProyectoDAO, "actualizar"):
-                ProyectoDAO.actualizar(proy_id, nom)
+            desc = input("Nueva descripción: ").strip()
+            
+            # ACTUALIZAR: Buscamos el objeto, lo modificamos y lo guardamos
+            proyecto = ProyectoDAO.buscar_por_id(proy_id)
+            if proyecto:
+                if nom:
+                    proyecto.nombre = nom
+                if desc:
+                    proyecto.descripcion = desc
+                    
+                if hasattr(ProyectoDAO, "actualizar"):
+                    ProyectoDAO.actualizar(proyecto)
+                else:
+                    ProyectoDAO().actualizar(proyecto)
+                print(f"\n Éxito: Proyecto ID {proy_id} actualizado en BD.")
             else:
-                ProyectoDAO().actualizar(proy_id, nom)
-            print(f"\n Éxito: Proyecto ID {proy_id} actualizado en BD.")
+                print(f"\n Error: No existe un proyecto con ID {proy_id}.")
+                
         elif op == "4":
             proy_id = pedir_dato("ID del Proyecto a eliminar: ", int)
             if hasattr(ProyectoDAO, "eliminar"):
@@ -301,6 +340,7 @@ def _ejecutar_opcion_proyecto(op):
             else:
                 ProyectoDAO().eliminar(proy_id)
             print(f"\n Éxito: Proyecto ID {proy_id} eliminado de BD.")
+            
     except Exception as e:
         print(f"\n Error al operar en BD: {e}")
 
@@ -337,14 +377,27 @@ def _crear_registro_tiempo_bd():
     tareas = input("Descripción de tareas: ").strip()
     
     try:
+        # SOLUCIÓN: Le enviamos ambos parámetros exigidos usando el mismo texto
+        nuevo_registro = RegistroTiempo(
+            id=0, 
+            empleado_id=emp_id,
+            proyecto_id=proy_id,
+            fecha=fecha,
+            cantidad_horas=horas,
+            descripcion=tareas,          # Satisface el primer error
+            tareas_realizadas=tareas     # Satisface el segundo error
+        )
+        
+        # Pasamos UN solo argumento al DAO
         if hasattr(RegistroTiempoDAO, "insertar"):
-            RegistroTiempoDAO.insertar(emp_id, proy_id, fecha, horas, tareas)
+            RegistroTiempoDAO.insertar(nuevo_registro)
         else:
-            RegistroTiempoDAO().insertar(emp_id, proy_id, fecha, horas, tareas)
+            RegistroTiempoDAO().insertar(nuevo_registro)
         print(f"\n Éxito: Registro guardado en BD y asociado al Empleado ID {emp_id}.")
     except Exception as e:
         print(f"\n Error al guardar en BD: {e}")
 
+    
 def _listar_registros_tiempo_bd():
     print("\n--- TODOS LOS REGISTROS EN LA BD ---")
     try:
@@ -374,11 +427,25 @@ def _ejecutar_opcion_registro_tiempo(op):
         if op == "3":
             reg_id = pedir_dato("ID del Registro a actualizar: ", int)
             horas = pedir_dato("Nuevas horas: ", float)
-            if hasattr(RegistroTiempoDAO, "actualizar"):
-                RegistroTiempoDAO.actualizar(reg_id, horas)
+            
+            # SOLUCIÓN: Buscamos el objeto por ID, le cambiamos las horas y enviamos el objeto completo
+            if hasattr(RegistroTiempoDAO, "buscar_por_id"):
+                registro = RegistroTiempoDAO.buscar_por_id(reg_id)
             else:
-                RegistroTiempoDAO().actualizar(reg_id, horas)
-            print(f"\n Éxito: Registro ID {reg_id} actualizado en BD.")
+                registro = RegistroTiempoDAO().buscar_por_id(reg_id)
+                
+            if registro:
+                registro.cantidad_horas = horas
+                
+                # Enviamos UN solo argumento (el objeto completo)
+                if hasattr(RegistroTiempoDAO, "actualizar"):
+                    RegistroTiempoDAO.actualizar(registro)
+                else:
+                    RegistroTiempoDAO().actualizar(registro)
+                print(f"\n Éxito: Registro ID {reg_id} actualizado en BD.")
+            else:
+                print(f"\n Error: No existe un registro de tiempo con ID {reg_id}.")
+                
         elif op == "4":
             reg_id = pedir_dato("ID del Registro a eliminar: ", int)
             if hasattr(RegistroTiempoDAO, "eliminar"):
